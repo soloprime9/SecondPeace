@@ -62,6 +62,7 @@ const ReelsFeed = () => {
     try {
       const res = await fetch(`${API}?page=${page}&limit=5`);
       const data = await res.json();
+      console.log("Posts : ", data)
       setVideos(prev => [...prev, ...data.videos.filter(v => !prev.some(p => p._id === v._id))]);
       setHasMore(page < data.totalPages);
     } catch (e) {

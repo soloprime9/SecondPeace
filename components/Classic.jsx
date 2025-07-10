@@ -324,32 +324,389 @@
 
 
 
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import axios from "axios";
+// import { Video } from 'expo-av';
+// import React, { useEffect, useState } from "react";
+// import {
+//   ActivityIndicator,
+//   Alert,
+//   FlatList,
+//   Image,
+//   KeyboardAvoidingView,
+//   Platform,
+//   StyleSheet,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   View,
+// } from "react-native";
+
+// export default function Feed() {
+//   const [posts, setPosts] = useState([]);
+//   const [commentText, setCommentText] = useState("");
+//   const [commentBoxOpen, setCommentBoxOpen] = useState({});
+//   const [userId, setUserId] = useState(null);
+//   const [token, setToken] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [authReady, setAuthReady] = useState(false);
+  
+
+//   useEffect(() => {
+//     const loadAuth = async () => {
+//       try {
+//         const storedToken = await AsyncStorage.getItem("token");
+//         const storedUserId = await AsyncStorage.getItem("UserId");
+
+//         if (!storedToken || !storedUserId) {
+//           Alert.alert("Authentication Error", "Please login again.");
+//           return;
+//         }
+
+//         setToken(storedToken);
+//         setUserId(storedUserId);
+//         setAuthReady(true);
+//       } catch (e) {
+//         console.log("Auth error:", e);
+//         Alert.alert("Auth Error", "Could not read token.");
+//       }
+//     };
+//     loadAuth();
+//   }, []);
+
+//   useEffect(() => {
+//     if (authReady) {
+//       fetchPosts();
+//     }
+//   }, [authReady]);
+
+//   const fetchPosts = async () => {
+//     try {
+//       setLoading(true);
+//       const { data } = await axios.get(
+//         "https://backend-k.vercel.app/post/mango/getall"
+//       );
+
+//       // Debug log: print posts and comment usernames
+//       console.log("Fetched posts:", data);
+
+//       data.forEach(post => {
+//         console.log(`Post ID: ${post._id}, User: ${post.userId?.username}`);
+//         if (post.comments && post.comments.length > 0) {
+//           post.comments.forEach(comment => {
+//             console.log(
+//               `  Comment ID: ${comment._id}, Text: "${comment.CommentText}", User: ${comment.userId?.username || "No username"}`
+//             );
+//           });
+//         } else {
+//           console.log("  No comments");
+//         }
+//       });
+
+//       setPosts(data);
+//     } catch (err) {
+//       Alert.alert("Error", "Failed to fetch posts");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleLikePost = async (postId) => {
+//     if (!token) return Alert.alert("Error", "User not authenticated");
+
+//     try {
+//       await axios.post(
+//         `https://backend-k.vercel.app/post/like/${postId}`,
+//         {},
+//         {
+//           headers: {
+//             "x-auth-token": token,
+//           },
+//         }
+//       );
+//       fetchPosts();
+//     } catch (err) {
+//       Alert.alert("Error", "Failed to like post");
+//     }
+//   };
+
+//   const handleComment = async (postId) => {
+//     if (!token || !userId)
+//       return Alert.alert("Error", "User not authenticated");
+//     if (!commentText.trim())
+//       return Alert.alert("Error", "Comment cannot be empty");
+
+//     try {
+//       await axios.post(
+//         `https://backend-k.vercel.app/post/comment/${postId}`,
+//         { CommentText: commentText, userId: userId },
+//         {
+//           headers: {
+//             "x-auth-token": token,
+//           },
+//         }
+//       );
+//       setCommentText("");
+//       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
+//       fetchPosts();
+//     } catch (err) {
+//       Alert.alert("Error", "Failed to post comment");
+//     }
+//   };
+
+//   const toggleCommentBox = (postId) => {
+//     setCommentBoxOpen((prev) => ({
+//       ...prev,
+//       [postId]: !prev[postId],
+//     }));
+//   };
+
+//   const renderPost = ({ item: post }) => {
+//   const isVideo = post.mediaType && post.mediaType.startsWith("video");
+
+//   return (
+//     <View style={styles.postContainer}>
+//       <View style={styles.postHeader}>
+//         <Image
+//           source={{
+//             uri: post?.userId?.profilePic || "https://www.fondpeace.com/og-image.jpg",
+//           }}
+//           style={styles.profilePic}
+//         />
+//         <Text style={styles.username}>
+//           {post?.userId?.username || "Unknown User"}
+//         </Text>
+//       </View>
+
+//       {post.media ? (
+//         isVideo ? (
+//           <Video
+//             source={{ uri: post.media }}
+//             style={styles.media}
+//             resizeMode="cover"
+            
+//             shouldPlay={true}
+//             isLooping={false}
+//           />
+//         ) : (
+//           <Image source={{ uri: post.media }} style={styles.media} />
+//         )
+//       ) : null}
+
+//         <View style={styles.actionRow}>
+//           <TouchableOpacity
+//             style={styles.likeButton}
+//             onPress={() => handleLikePost(post._id)}
+//           >
+//             <Text style={styles.actionText}>
+//               Like ({post.likes?.length || 0})
+//             </Text>
+//           </TouchableOpacity>
+
+//           <TouchableOpacity
+//             style={styles.commentButton}
+//             onPress={() => toggleCommentBox(post._id)}
+//           >
+//             <Text style={styles.actionText}>Comment</Text>
+//           </TouchableOpacity>
+//         </View>
+
+//         {commentBoxOpen[post._id] && (
+//           <View style={styles.commentBox}>
+//             <TextInput
+//               style={styles.commentInput}
+//               placeholder="Write a comment..."
+//               value={commentText}
+//               onChangeText={setCommentText}
+//             />
+//             <TouchableOpacity
+//               style={styles.postCommentButton}
+//               onPress={() => handleComment(post._id)}
+//             >
+//               <Text style={styles.postCommentText}>Post Comment</Text>
+//             </TouchableOpacity>
+
+//             {post.comments?.length > 0 && (
+//               <View style={styles.commentsList}>
+//                 {post.comments.map((comment) => (
+//                   <View key={comment._id} style={styles.commentItem}>
+//                     <Text style={styles.commentAuthor}>
+//                       {comment.userId?.username || "Fond Peace" }:
+//                     </Text>
+//                     <Text style={styles.commentText}>{comment.CommentText}</Text>
+//                   </View>
+//                 ))}
+//               </View>
+//             )}
+//           </View>
+//         )}
+//       </View>
+//     );
+//   };
+
+//   if (loading || !authReady) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="large" color="#007bff" />
+//         <Text style={{ marginTop: 10 }}>Loading feed...</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <KeyboardAvoidingView
+//       behavior={Platform.OS === "ios" ? "padding" : undefined}
+//       style={styles.container}
+//     >
+//       <FlatList
+//         data={posts}
+//         keyExtractor={(item) => item._id}
+//         renderItem={renderPost}
+//         contentContainerStyle={{ paddingBottom: 80 }}
+//       />
+//     </KeyboardAvoidingView>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: "#FFA500",
+//   },
+//   loadingContainer: {
+//     flex: 1,
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   postContainer: {
+//     backgroundColor: "white",
+//     margin: 10,
+//     borderRadius: 10,
+//     padding: 10,
+//     elevation: 3,
+//   },
+//   postHeader: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     marginBottom: 10,
+//   },
+//   profilePic: {
+//     width: 40,
+//     height: 40,
+//     borderRadius: 20,
+//     marginRight: 10,
+//   },
+//   username: {
+//     fontWeight: "700",
+//     fontSize: 16,
+//   },
+//   media: {
+//     width: "100%",
+//     height: 250,
+//     borderRadius: 10,
+//     marginBottom: 10,
+//   },
+//   actionRow: {
+//     flexDirection: "row",
+//     justifyContent: "space-between",
+//   },
+//   likeButton: {
+//     backgroundColor: "#007bff",
+//     paddingVertical: 8,
+//     paddingHorizontal: 16,
+//     borderRadius: 8,
+//   },
+//   commentButton: {
+//     backgroundColor: "#28a745",
+//     paddingVertical: 8,
+//     paddingHorizontal: 16,
+//     borderRadius: 8,
+//   },
+//   actionText: {
+//     color: "white",
+//     fontWeight: "600",
+//   },
+//   commentBox: {
+//     marginTop: 10,
+//   },
+//   commentInput: {
+//     borderWidth: 1,
+//     borderColor: "#007bff",
+//     borderRadius: 8,
+//     padding: 10,
+//     marginBottom: 10,
+//     backgroundColor: "white",
+//   },
+//   postCommentButton: {
+//     backgroundColor: "#007bff",
+//     paddingVertical: 10,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     marginBottom: 10,
+//   },
+//   postCommentText: {
+//     color: "white",
+//     fontWeight: "700",
+//   },
+//   commentsList: {
+//     marginTop: 10,
+//   },
+//   commentItem: {
+//     flexDirection: "row",
+//     marginBottom: 5,
+//   },
+//   commentAuthor: {
+//     fontWeight: "bold",
+//     marginRight: 5,
+//   },
+//   commentText: {
+//     flexShrink: 1,
+//   },
+// });
+
+
+
+
+
+
+
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from '@react-navigation/native';
 import axios from "axios";
-import { Video } from "expo-av";
-import React, { useEffect, useState } from "react";
+import { Video } from 'expo-av';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+
+const { width } = Dimensions.get('window');
 
 export default function Feed() {
   const [posts, setPosts] = useState([]);
-  const [commentText, setCommentText] = useState("");
+  const [commentTextMap, setCommentTextMap] = useState({});
   const [commentBoxOpen, setCommentBoxOpen] = useState({});
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [expandedPosts, setExpandedPosts] = useState({});
+  const isFocused = useIsFocused();
+  const videoRefs = useRef([]);
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 70 });
 
   useEffect(() => {
     const loadAuth = async () => {
@@ -374,40 +731,33 @@ export default function Feed() {
   }, []);
 
   useEffect(() => {
-    if (authReady) {
-      fetchPosts();
+    if (!isFocused) {
+      videoRefs.current.forEach(video => video?.pauseAsync());
     }
-  }, [authReady]);
+  }, [isFocused]);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(
-        "https://backend-k.vercel.app/post/mango/getall"
-      );
-
-      // Debug log: print posts and comment usernames
-      console.log("Fetched posts:", data);
-
-      data.forEach(post => {
-        console.log(`Post ID: ${post._id}, User: ${post.userId?.username}`);
-        if (post.comments && post.comments.length > 0) {
-          post.comments.forEach(comment => {
-            console.log(
-              `  Comment ID: ${comment._id}, Text: "${comment.CommentText}", User: ${comment.userId?.username || "No username"}`
-            );
-          });
-        } else {
-          console.log("  No comments");
-        }
-      });
-
+      const { data } = await axios.get("https://backend-k.vercel.app/post/mango/getall");
       setPosts(data);
     } catch (err) {
       Alert.alert("Error", "Failed to fetch posts");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  useEffect(() => {
+    if (authReady) {
+      fetchPosts();
+    }
+  }, [authReady]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchPosts();
   };
 
   const handleLikePost = async (postId) => {
@@ -418,9 +768,7 @@ export default function Feed() {
         `https://backend-k.vercel.app/post/like/${postId}`,
         {},
         {
-          headers: {
-            "x-auth-token": token,
-          },
+          headers: { "x-auth-token": token },
         }
       );
       fetchPosts();
@@ -430,22 +778,18 @@ export default function Feed() {
   };
 
   const handleComment = async (postId) => {
-    if (!token || !userId)
-      return Alert.alert("Error", "User not authenticated");
-    if (!commentText.trim())
-      return Alert.alert("Error", "Comment cannot be empty");
-
+    const commentText = commentTextMap[postId];
+    if (!token || !userId || !commentText?.trim()) {
+      Alert.alert("Error", "Comment cannot be empty or unauthenticated");
+      return;
+    }
     try {
       await axios.post(
         `https://backend-k.vercel.app/post/comment/${postId}`,
-        { CommentText: commentText, userId: userId },
-        {
-          headers: {
-            "x-auth-token": token,
-          },
-        }
+        { CommentText: commentText, userId },
+        { headers: { "x-auth-token": token } }
       );
-      setCommentText("");
+      setCommentTextMap((prev) => ({ ...prev, [postId]: "" }));
       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
       fetchPosts();
     } catch (err) {
@@ -454,94 +798,118 @@ export default function Feed() {
   };
 
   const toggleCommentBox = (postId) => {
-    setCommentBoxOpen((prev) => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
+    setCommentBoxOpen((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
-  const renderPost = ({ item: post }) => {
-    const isVideo = post.media?.endsWith(".mp4");
+  const toggleExpanded = (postId) => {
+  setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+};
+
+  const renderPost = useCallback(({ item: post, index }) => {
+    const isExpanded = expandedPosts[post._id];
+    const titleText = isExpanded ? post.title : (post.title?.slice(0, 100) + (post.title?.length > 100 ? '...' : ''));
+
+    const isVideo = post.mediaType?.startsWith("video");
+    const commentText = commentTextMap[post._id] || "";
+    const commentsVisible = commentBoxOpen[post._id];
 
     return (
       <View style={styles.postContainer}>
         <View style={styles.postHeader}>
           <Image
-            source={{
-              uri: post?.userId?.profilePic || "https://www.fondpeace.com/og-image.jpg",
-            }}
+            source={{ uri: post?.userId?.profilePic || "https://www.fondpeace.com/og-image.jpg" }}
             style={styles.profilePic}
           />
-          <Text style={styles.username}>
-            {post?.userId?.username || "Unknown User"}
-          </Text>
+          <Text style={styles.username}>{post?.userId?.username || "Unknown User"}</Text>
+
+          <TouchableOpacity style={styles.menuButton}>
+            <Text style={styles.menuText}>⋯</Text>
+          </TouchableOpacity>
+
         </View>
+        {post.title && (
+              <Text style={styles.postTitle}>
+                {isExpanded || post.title.length <= 1
+                  ? post.title
+                  : post.title.slice(0, 100) + "..."}
+                {post.title.length > 100 && (
+                  <Text style={styles.seeMore} onPress={() => toggleExpanded(post._id)}>
+                    {isExpanded ? " See less" : " See more"}
+                  </Text>
+                )}
+              </Text>
+            )}
 
         {post.media ? (
           isVideo ? (
             <Video
+              ref={(ref) => (videoRefs.current[index] = ref)}
               source={{ uri: post.media }}
               style={styles.media}
-              resizeMode="contain"
-              useNativeControls
+              resizeMode="cover"
               shouldPlay={false}
-              isLooping={false}
+              isLooping
+              useNativeControls={false}
             />
           ) : (
-            <Image source={{ uri: post.media }} style={styles.media} />
+            <Image source={{ uri: post.media }} style={styles.media} resizeMode="cover" defaultSource={ "https://www.fondpeace.com/og-image.jpg"} />
           )
         ) : null}
 
         <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.likeButton}
-            onPress={() => handleLikePost(post._id)}
-          >
-            <Text style={styles.actionText}>
-              Like ({post.likes?.length || 0})
-            </Text>
+          <TouchableOpacity style={styles.likeButton} onPress={() => handleLikePost(post._id)}>
+            <Text style={styles.actionText}>Like ({post.likes?.length || 0})</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.commentButton}
-            onPress={() => toggleCommentBox(post._id)}
-          >
+          <TouchableOpacity style={styles.commentButton} onPress={() => toggleCommentBox(post._id)}>
             <Text style={styles.actionText}>Comment</Text>
           </TouchableOpacity>
         </View>
 
-        {commentBoxOpen[post._id] && (
+        {commentsVisible && (
           <View style={styles.commentBox}>
             <TextInput
               style={styles.commentInput}
               placeholder="Write a comment..."
               value={commentText}
-              onChangeText={setCommentText}
+              onChangeText={(text) => setCommentTextMap((prev) => ({ ...prev, [post._id]: text }))}
             />
-            <TouchableOpacity
-              style={styles.postCommentButton}
-              onPress={() => handleComment(post._id)}
-            >
+            <TouchableOpacity style={styles.postCommentButton} onPress={() => handleComment(post._id)}>
               <Text style={styles.postCommentText}>Post Comment</Text>
             </TouchableOpacity>
 
             {post.comments?.length > 0 && (
-              <View style={styles.commentsList}>
-                {post.comments.map((comment) => (
-                  <View key={comment._id} style={styles.commentItem}>
-                    <Text style={styles.commentAuthor}>
-                      {comment.userId?.username || "Fond Peace" }:
-                    </Text>
-                    <Text style={styles.commentText}>{comment.CommentText}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
+                <View style={styles.commentsList}>
+                  {post.comments.map((comment, index) => (
+                    <View key={index} style={styles.commentItem}>
+                      <Image
+                        source={{ uri: comment?.userId?.profilePic || 'https://www.fondpeace.com/og-image.jpg' }}
+                        style={styles.commentAvatar}
+                      />
+                      <View>
+                        <Text style={styles.commentAuthor}>{comment?.userId?.username || 'User'}:</Text>
+                        <Text style={styles.commentText}>{comment?.CommentText}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+
           </View>
         )}
       </View>
     );
-  };
+  }, [commentTextMap, commentBoxOpen, expandedPosts]);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    videoRefs.current.forEach((video, index) => {
+      const isVisible = viewableItems.some(item => item.index === index && item.isViewable);
+      if (video) {
+        isVisible ? video.playAsync() : video.pauseAsync();
+      }
+    });
+  });
 
   if (loading || !authReady) {
     return (
@@ -562,6 +930,9 @@ export default function Feed() {
         keyExtractor={(item) => item._id}
         renderItem={renderPost}
         contentContainerStyle={{ paddingBottom: 80 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        viewabilityConfig={viewabilityConfig.current}
+        onViewableItemsChanged={onViewableItemsChanged.current}
       />
     </KeyboardAvoidingView>
   );
@@ -570,7 +941,7 @@ export default function Feed() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFA500",
+    backgroundColor: "#f9f9f9",
   },
   loadingContainer: {
     flex: 1,
@@ -578,17 +949,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   postContainer: {
-    backgroundColor: "white",
-    margin: 10,
-    borderRadius: 10,
-    padding: 10,
-    elevation: 3,
-  },
+  backgroundColor: "white",
+  marginVertical: 10,
+  marginHorizontal: 10,
+  borderRadius: 12,
+  padding: 10,
+  elevation: 2,
+},
+
   postHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 8,
+},
+
   profilePic: {
     width: 40,
     height: 40,
@@ -599,50 +973,87 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
   },
+
+  postTitle: {
+  fontSize: 15,
+  color: "#333",
+  marginBottom: 8,
+  lineHeight: 20,
+},
+seeMore: {
+  color: "#007bff",
+  fontWeight: "600",
+},
+
   media: {
-    width: "100%",
-    height: 250,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
+  width: "100%",
+  aspectRatio: 4 / 5, // This gives a height 1.25x width
+  borderRadius: 12,
+  marginBottom: 10,
+  backgroundColor: "#000",
+},
   actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  likeButton: {
-    backgroundColor: "#007bff",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
+  flexDirection: "row",
+  justifyContent: "space-around", // better spacing
+  marginVertical: 8,
+},
+likeButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "#efefef",
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 20,
+},
+actionText: {
+  color: "#333",
+  fontWeight: "500",
+},
+menuButton: {
+  marginLeft: 'auto',
+  padding: 5,
+},
+menuText: {
+  fontSize: 26,
+  color: "#555",
+},
   commentButton: {
     backgroundColor: "#28a745",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  actionText: {
-    color: "white",
-    fontWeight: "600",
-  },
+  
   commentBox: {
-    marginTop: 10,
-  },
-  commentInput: {
-    borderWidth: 1,
-    borderColor: "#007bff",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: "white",
-  },
-  postCommentButton: {
-    backgroundColor: "#007bff",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  marginTop: 10,
+  backgroundColor: "#fafafa",
+  borderRadius: 12,
+  padding: 10,
+  borderWidth: 1,
+  borderColor: "#e0e0e0",
+},
+
+
+postCommentButton: {
+  alignSelf: 'flex-end',
+  backgroundColor: "#007bff",
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+  borderRadius: 20,
+  marginTop: 5,
+},
+commentItem: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  marginBottom: 8,
+},
+commentAvatar: {
+  width: 30,
+  height: 30,
+  borderRadius: 15,
+  marginRight: 10,
+},
+
   postCommentText: {
     color: "white",
     fontWeight: "700",
@@ -661,4 +1072,14 @@ const styles = StyleSheet.create({
   commentText: {
     flexShrink: 1,
   },
+  commentInput: {
+  borderWidth: 1,
+  borderColor: "#ddd",
+  borderRadius: 30,
+  paddingHorizontal: 16,
+  paddingVertical: 10,
+  backgroundColor: "#fff",
+  fontSize: 14,
+},
+
 });

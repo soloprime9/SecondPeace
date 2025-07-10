@@ -3,16 +3,16 @@ import axios from "axios";
 import { Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { jwtDecode } from "jwt-decode";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import * as Progress from "react-native-progress";
 

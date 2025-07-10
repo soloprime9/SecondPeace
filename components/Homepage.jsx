@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   leftSidebar: {
     width: 150,
-    padding: 12,
+    padding: 2,
     borderRightWidth: 1,
     borderRightColor: '#ddd',
     backgroundColor: '#f9f9f9',
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   leftSidebarItem: {
     fontWeight: '700',
     fontSize: 18,
-    marginVertical: 14,
+    marginVertical: 1,
     color: '#333',
   },
   mainContent: {
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 12,
-    padding: 14,
+    padding: 1,
     marginBottom: 18,
     backgroundColor: '#fafafa',
     shadowColor: '#000',
