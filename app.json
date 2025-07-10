@@ -12,12 +12,14 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.pratikabd.fondpeace",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
